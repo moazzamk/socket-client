@@ -5,18 +5,17 @@ import (
 	"net/http"
 	"socket-client/socketclient"
 	"log"
+	"strings"
 )
 
-
+// ShowForm
 func ShowForm(rs http.ResponseWriter, req *http.Request, param httprouter.Params) {
 	var errMessage string
 	var ret string
 	var err error
 
 	if req.FormValue(`host`) != `` {
-		ret, err = socketclient.GetResponse(
-			req.FormValue(`host`),
-			`<ops>` + req.FormValue(`input`) + `</ops>`)
+		ret, err = socketclient.GetResponse(req.FormValue(`host`), req.FormValue(`input`))
 
 	}
 
@@ -34,7 +33,6 @@ func ShowForm(rs http.ResponseWriter, req *http.Request, param httprouter.Params
 				}
 			</style>
 		</head>
-		
 		<form action="/" method="post">
 			<div class="form-group">
 				<label for="host"><h4>Host:</h4></label> 
@@ -42,12 +40,16 @@ func ShowForm(rs http.ResponseWriter, req *http.Request, param httprouter.Params
 			</div>
 			<div class="form-group">
 				<label for="input"><h4>Input:</h4></label> 
-				<textarea name="input" rows="10" class="form-control" id="input">` + req.FormValue(`input`) + `</textarea><br/>
+				<textarea name="input" rows="10" class="form-control" id="input">` +
+					strings.Replace(req.FormValue(`input`), `&`, `&amp;`, -1) +
+				`</textarea><br/>
 			</div>
-			<input type="submit" value="GO" />
+			<input class="form-control btn btn-primary" type="submit" value="GO" />
 		</form>
 
-		<pre> ` + ret + errMessage + `</pre>
+		
+		<h4>Response:</h4>
+		<textarea class="form-control" rows="10">` + ret + errMessage + `</textarea>
 
 		<script
   			src="https://code.jquery.com/jquery-3.3.1.min.js"

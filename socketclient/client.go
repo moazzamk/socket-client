@@ -4,32 +4,42 @@ import (
 	"net"
 	"fmt"
 	"io"
+	"time"
 	"bytes"
-	"log"
 )
 
+// GetResponse connects to a server through sockets and returns the response
 func GetResponse(host string, input string) (string, error) {
-	log.Println(`host`, `'`  + host + `'`)
-	log.Println(`input`, input)
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
-		log.Println(`errrrr`)
 		return ``, err
 	}
 
 	defer conn.Close()
 
-	fmt.Fprintf(conn, input + "\r\n\r\n")
+	t := time.Time{}
+	t.Add(30 * time.Second)
+
+	conn.SetDeadline(t)
+	conn.Write([]byte(input ))
+	//fmt.Fprintf(conn, input)
 
 	var buf bytes.Buffer
-	var s []byte
-	log.Println(conn.Read(s))
+	tmp := make([]byte, 256)     // using small tmo buffer for demonstrating
+	for {
+		n, err := conn.Read(tmp)
+		fmt.Println(string(tmp[:n]), n)
+		if err != nil {
+			if err != io.EOF {
+				fmt.Println("read error:", err)
+			}
 
-	_, err = io.Copy(&buf, conn)
-	if err != nil {
-		log.Println(`hiiiiii`)
-		return ``, err
+			break
+		}
+		buf.Write(tmp)
 	}
+
+	fmt.Println("total size:", buf.Len())
 
 	return buf.String(), nil
 }
